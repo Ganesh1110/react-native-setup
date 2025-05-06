@@ -7,17 +7,20 @@
 
 import React from 'react';
 import {QueryClient, QueryClientProvider} from '@tanstack/react-query';
-import ToastScreen from './src/screens/ToastScreen';
 import {ToastProvider} from './src/components/ToastContainer';
+import {MetricsProvider} from './src/utilities/MetricsContext';
+import MetricsShowcase from './src/screens/New';
 
 const queryClient = new QueryClient();
 
 const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
-      <ToastProvider>
-        <ToastScreen />
-      </ToastProvider>
+      <MetricsProvider>
+        <ToastProvider>
+          <MetricsShowcase />
+        </ToastProvider>
+      </MetricsProvider>
     </QueryClientProvider>
   );
 };
