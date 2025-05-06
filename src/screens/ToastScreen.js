@@ -1,109 +1,3 @@
-// import {Text, SafeAreaView, Button, StyleSheet, View} from 'react-native';
-// import React from 'react';
-// import {ToastProvider, useToast} from '../components/ToastContainer';
-
-// const ToastDemoContent = () => {
-//   const {show} = useToast(); // Use the toast hook
-
-//   // Demo functions to show different types of toasts
-//   const showSuccessToast = () => {
-//     show({
-//       title: 'Success',
-//       message: 'Your action was completed successfully!',
-//       type: 'success',
-//       timeout: 4000,
-//     });
-//   };
-
-//   const showErrorToast = () => {
-//     show({
-//       title: 'Error',
-//       message: 'Something went wrong. Please try again.',
-//       type: 'error',
-//       timeout: 5000,
-//     });
-//   };
-
-//   const showInfoToast = () => {
-//     show({
-//       title: 'Information',
-//       message: 'This is an informational message for you.',
-//       type: 'info',
-//       timeout: 3000,
-//     });
-//   };
-
-//   const showWarningToast = () => {
-//     show({
-//       title: 'Warning',
-//       message: 'Please be careful with this action.',
-//       type: 'warning',
-//       timeout: 4500,
-//     });
-//   };
-
-//   return (
-//     <SafeAreaView style={styles.container}>
-//       <Text style={styles.headerText}>Toast Notification Demo</Text>
-//       <View style={styles.buttonContainer}>
-//         <Button
-//           title="Show Success Toast"
-//           onPress={showSuccessToast}
-//           color="#2E7D32"
-//         />
-//         <View style={styles.buttonSpacer} />
-//         <Button
-//           title="Show Error Toast"
-//           onPress={showErrorToast}
-//           color="#D32F2F"
-//         />
-//         <View style={styles.buttonSpacer} />
-//         <Button
-//           title="Show Info Toast"
-//           onPress={showInfoToast}
-//           color="#1976D2"
-//         />
-//         <View style={styles.buttonSpacer} />
-//         <Button
-//           title="Show Warning Toast"
-//           onPress={showWarningToast}
-//           color="#ED6C02"
-//         />
-//       </View>
-//     </SafeAreaView>
-//   );
-// };
-
-// const ToastScreen = () => {
-//   return (
-//     <ToastProvider>
-//       <ToastDemoContent />
-//     </ToastProvider>
-//   );
-// };
-
-// const styles = StyleSheet.create({
-//   container: {
-//     flex: 1,
-//     justifyContent: 'center',
-//     alignItems: 'center',
-//     padding: 20,
-//   },
-//   headerText: {
-//     fontSize: 22,
-//     fontWeight: 'bold',
-//     marginBottom: 30,
-//   },
-//   buttonContainer: {
-//     width: '100%',
-//   },
-//   buttonSpacer: {
-//     height: 12,
-//   },
-// });
-
-// export default ToastScreen;
-
 import {
   Text,
   SafeAreaView,
@@ -112,6 +6,7 @@ import {
   View,
   TouchableOpacity,
   Switch,
+  Image,
 } from 'react-native';
 import React, {useState} from 'react';
 import {ToastProvider, useToast} from '../components/ToastContainer'; // Import the ToastProvider
@@ -342,11 +237,13 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   customToast: {
-    // flexDirection: 'row',
-    // alignItems: 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: '#DFF0D8',
     padding: 10,
     borderRadius: 8,
+    minWidth: 400,
+    marginTop: 10,
   },
   customToastContent: {
     flex: 1,

@@ -1,179 +1,13 @@
-// import React, {
-//   createContext,
-//   useContext,
-//   useState,
-//   useCallback,
-//   useRef,
-// } from 'react';
-// import {View, StyleSheet, Dimensions, Platform} from 'react-native';
-// import ToastItem from './ToastItem'; // Import our enhanced ToastItem
-
-// const ToastContext = createContext();
-
-// const SCREEN_WIDTH = Dimensions.get('window').width;
-// const MAX_TOASTS = 3; // Maximum number of visible toasts at once
-
-// export const ToastProvider = ({children}) => {
-//   const [toasts, setToasts] = useState([]);
-//   const toastQueue = useRef([]);
-//   const isProcessingQueue = useRef(false);
-
-//   // Process queue when a toast is dismissed or when queue changes
-//   const processQueue = useCallback(() => {
-//     if (isProcessingQueue.current || toastQueue.current.length === 0) {
-//       return;
-//     }
-
-//     isProcessingQueue.current = true;
-
-//     // If we can add more toasts, add from queue
-//     if (toasts.length < MAX_TOASTS) {
-//       const nextToast = toastQueue.current.shift();
-//       setToasts(prev => [...prev, nextToast]);
-//     }
-
-//     isProcessingQueue.current = false;
-//   }, [toasts.length]);
-
-//   // Show a toast
-//   const show = useCallback(
-//     ({
-//       title,
-//       message,
-//       type = 'info',
-//       timeout = 4000,
-//       position = 'top', // 'top' or 'bottom'
-//     }) => {
-//       const id =
-//         Date.now().toString() + Math.random().toString(36).substr(2, 5);
-//       const newToast = {id, title, message, type, timeout, position};
-
-//       // If we can show immediately
-//       if (toasts.length < MAX_TOASTS) {
-//         setToasts(prev => [...prev, newToast]);
-//       } else {
-//         // Otherwise queue it
-//         toastQueue.current.push(newToast);
-//       }
-
-//       // Auto-dismiss after timeout
-//       if (timeout) {
-//         setTimeout(() => hide(id), timeout + 500); // Additional 500ms for exit animation
-//       }
-
-//       return id; // Return ID so toast can be dismissed programmatically
-//     },
-//     [toasts.length],
-//   );
-
-//   // Hide a toast
-//   const hide = useCallback(
-//     id => {
-//       setToasts(prev => {
-//         const newToasts = prev.filter(toast => toast.id !== id);
-
-//         // If we removed a toast, process queue to see if we can show more
-//         if (newToasts.length < prev.length) {
-//           setTimeout(processQueue, 300); // Small delay to allow animation to complete
-//         }
-
-//         return newToasts;
-//       });
-//     },
-//     [processQueue],
-//   );
-
-//   // Utility method to hide all toasts
-//   const hideAll = useCallback(() => {
-//     setToasts([]);
-//     toastQueue.current = [];
-//   }, []);
-
-//   // Object with all toast methods
-//   const toastMethods = {
-//     show,
-//     hide,
-//     hideAll,
-//     success: (title, message, options = {}) =>
-//       show({title, message, type: 'success', ...options}),
-//     error: (title, message, options = {}) =>
-//       show({title, message, type: 'error', ...options}),
-//     info: (title, message, options = {}) =>
-//       show({title, message, type: 'info', ...options}),
-//     warning: (title, message, options = {}) =>
-//       show({title, message, type: 'warning', ...options}),
-//   };
-
-//   // Group toasts by position
-//   const topToasts = toasts.filter(toast => toast.position !== 'bottom');
-//   const bottomToasts = toasts.filter(toast => toast.position === 'bottom');
-
-//   return (
-//     <ToastContext.Provider value={toastMethods}>
-//       {children}
-
-//       {/* Top toasts container */}
-//       <View style={styles.topContainer}>
-//         {topToasts.map(toast => (
-//           <ToastItem
-//             key={toast.id}
-//             {...toast}
-//             onDismiss={() => hide(toast.id)}
-//           />
-//         ))}
-//       </View>
-
-//       {/* Bottom toasts container */}
-//       <View style={styles.bottomContainer}>
-//         {bottomToasts.map(toast => (
-//           <ToastItem
-//             key={toast.id}
-//             {...toast}
-//             onDismiss={() => hide(toast.id)}
-//           />
-//         ))}
-//       </View>
-//     </ToastContext.Provider>
-//   );
-// };
-
-// export const useToast = () => {
-//   const context = useContext(ToastContext);
-//   if (!context) {
-//     throw new Error('useToast must be used inside a ToastProvider');
-//   }
-//   return context;
-// };
-
-// const styles = StyleSheet.create({
-//   topContainer: {
-//     position: 'absolute',
-//     top: Platform.OS === 'ios' ? 50 : 25,
-//     left: 0,
-//     right: 0,
-//     alignItems: 'center',
-//     zIndex: 999,
-//     paddingHorizontal: 10,
-//   },
-//   bottomContainer: {
-//     position: 'absolute',
-//     bottom: Platform.OS === 'ios' ? 50 : 25,
-//     left: 0,
-//     right: 0,
-//     alignItems: 'center',
-//     zIndex: 999,
-//     paddingHorizontal: 10,
-//   },
-// });
-
 import React, {
   createContext,
   useContext,
   useState,
   useCallback,
   useRef,
+  memo,
 } from 'react';
 import {View, StyleSheet, Dimensions, Platform} from 'react-native';
+import PropTypes from 'prop-types';
 import ToastItem from './ToastItem';
 
 // Create context for toast functionality
@@ -189,19 +23,18 @@ const DEFAULT_CONFIG = {
   offsetTop: Platform.OS === 'ios' ? 50 : 25,
   offsetBottom: Platform.OS === 'ios' ? 50 : 25,
   animationType: 'slide', // 'slide', 'fade', 'bounce', 'zoom'
-  swipeEnabled: true,
+  swipeEnabled: false, // Disabled by default
   containerStyle: {},
   backdropOpacity: 0, // Set > 0 to show backdrop behind toasts
+  defaultPosition: 'top',
+  enableQueue: true,
+  progressBar: false, // Disabled by default
 };
 
 /**
  * Toast Provider Component
- *
- * @param {Object} props - Provider props
- * @param {React.ReactNode} props.children - Child components
- * @param {Object} props.config - Global toast configuration
  */
-export const ToastProvider = ({children, config = {}}) => {
+export const ToastProvider = memo(({children, config = {}}) => {
   // Merge default config with user config
   const toastConfig = {
     ...DEFAULT_CONFIG,
@@ -211,13 +44,17 @@ export const ToastProvider = ({children, config = {}}) => {
   // State for active toasts
   const [toasts, setToasts] = useState([]);
 
-  // Queue for pending toasts
+  // Queue for pending toasts (only used if enableQueue is true)
   const toastQueue = useRef([]);
   const isProcessingQueue = useRef(false);
 
   // Process queue when a toast is dismissed or when queue changes
   const processQueue = useCallback(() => {
-    if (isProcessingQueue.current || toastQueue.current.length === 0) {
+    if (
+      !toastConfig.enableQueue ||
+      isProcessingQueue.current ||
+      toastQueue.current.length === 0
+    ) {
       return;
     }
 
@@ -230,13 +67,10 @@ export const ToastProvider = ({children, config = {}}) => {
     }
 
     isProcessingQueue.current = false;
-  }, [toasts.length, toastConfig.maxToasts]);
+  }, [toasts.length, toastConfig.maxToasts, toastConfig.enableQueue]);
 
   /**
    * Show a toast notification
-   *
-   * @param {Object} options - Toast options
-   * @returns {string} Toast ID
    */
   const show = useCallback(
     ({
@@ -244,17 +78,18 @@ export const ToastProvider = ({children, config = {}}) => {
       message,
       type = 'info',
       timeout = 4000,
-      position = 'top',
-      animationType,
+      position = toastConfig.defaultPosition,
+      animationType = toastConfig.animationType,
       onPress,
       onDismiss: onDismissCallback,
       renderCustomToast,
       style = {},
-      swipeEnabled,
+      swipeEnabled = toastConfig.swipeEnabled,
       swipeDirection,
-      progressBar = true,
+      progressBar = toastConfig.progressBar,
       icon,
       hideCloseButton = false,
+      isLoading = false,
       ...customProps
     }) => {
       const id =
@@ -265,44 +100,42 @@ export const ToastProvider = ({children, config = {}}) => {
         title,
         message,
         type,
-        timeout,
+        timeout: isLoading ? null : timeout, // No timeout for loading toasts
         position,
-        animationType: animationType || toastConfig.animationType,
+        animationType,
         onPress,
         onDismissCallback,
         renderCustomToast,
         style,
-        swipeEnabled:
-          swipeEnabled !== undefined ? swipeEnabled : toastConfig.swipeEnabled,
+        swipeEnabled,
         swipeDirection,
         progressBar,
         icon,
         hideCloseButton,
+        isLoading,
         ...customProps,
       };
 
       // If we can show immediately
       if (toasts.length < toastConfig.maxToasts) {
         setToasts(prev => [...prev, newToast]);
-      } else {
-        // Otherwise queue it
+      } else if (toastConfig.enableQueue) {
+        // Otherwise queue it (if queue is enabled)
         toastQueue.current.push(newToast);
       }
 
-      // Auto-dismiss after timeout
-      if (timeout) {
+      // Auto-dismiss after timeout (if not loading)
+      if (timeout && !isLoading) {
         setTimeout(() => hide(id), timeout + 500); // Additional 500ms for exit animation
       }
 
-      return id; // Return ID so toast can be dismissed programmatically
+      return id;
     },
     [toasts.length, toastConfig],
   );
 
   /**
    * Hide a specific toast by ID
-   *
-   * @param {string} id - Toast ID to hide
    */
   const hide = useCallback(
     id => {
@@ -316,14 +149,14 @@ export const ToastProvider = ({children, config = {}}) => {
         const newToasts = prev.filter(toast => toast.id !== id);
 
         // If we removed a toast, process queue to see if we can show more
-        if (newToasts.length < prev.length) {
+        if (newToasts.length < prev.length && toastConfig.enableQueue) {
           setTimeout(processQueue, 300); // Small delay to allow animation to complete
         }
 
         return newToasts;
       });
     },
-    [processQueue],
+    [processQueue, toastConfig.enableQueue],
   );
 
   /**
@@ -336,9 +169,6 @@ export const ToastProvider = ({children, config = {}}) => {
 
   /**
    * Update an existing toast's content
-   *
-   * @param {string} id - Toast ID to update
-   * @param {Object} newProps - New properties to apply
    */
   const update = useCallback((id, newProps) => {
     setToasts(prev =>
@@ -371,6 +201,12 @@ export const ToastProvider = ({children, config = {}}) => {
     [show],
   );
 
+  const loading = useCallback(
+    (title, message, options = {}) =>
+      show({title, message, type: 'loading', isLoading: true, ...options}),
+    [show],
+  );
+
   // Object with all toast methods
   const toastMethods = {
     show,
@@ -381,6 +217,7 @@ export const ToastProvider = ({children, config = {}}) => {
     error,
     info,
     warning,
+    loading,
   };
 
   // Group toasts by position
@@ -434,12 +271,30 @@ export const ToastProvider = ({children, config = {}}) => {
       </View>
     </ToastContext.Provider>
   );
+});
+
+ToastProvider.propTypes = {
+  children: PropTypes.node,
+  config: PropTypes.shape({
+    maxToasts: PropTypes.number,
+    offsetTop: PropTypes.number,
+    offsetBottom: PropTypes.number,
+    animationType: PropTypes.oneOf(['slide', 'fade', 'bounce', 'zoom']),
+    swipeEnabled: PropTypes.bool,
+    containerStyle: PropTypes.object,
+    backdropOpacity: PropTypes.number,
+    defaultPosition: PropTypes.oneOf(['top', 'bottom']),
+    enableQueue: PropTypes.bool,
+    progressBar: PropTypes.bool,
+  }),
+};
+
+ToastProvider.defaultProps = {
+  config: {},
 };
 
 /**
  * Custom hook to use the toast functionality
- *
- * @returns {Object} Toast methods
  */
 export const useToast = () => {
   const context = useContext(ToastContext);
