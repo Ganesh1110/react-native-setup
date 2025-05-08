@@ -4,6 +4,7 @@ import {NavigationContainer} from '@react-navigation/native';
 import useAuthStore from './src/store/authStore';
 import ToastProvider from './src/utils/toast/ToastProvider';
 import TestScreen from './src/screens/TestScreen';
+import AppNavigator from './src/navigation/AppNavigator';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -25,7 +26,7 @@ export default function App() {
     <QueryClientProvider client={queryClient}>
       <ToastProvider>
         <NavigationContainer>
-          <TestScreen />
+          <AppNavigator />
         </NavigationContainer>
       </ToastProvider>
     </QueryClientProvider>
