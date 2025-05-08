@@ -1,28 +1,33 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
-
-import React from 'react';
+import React, {useEffect} from 'react';
 import {QueryClient, QueryClientProvider} from '@tanstack/react-query';
-import {ToastProvider} from './src/components/ToastContainer';
-import {MetricsProvider} from './src/utilities/MetricsContext';
-import TestShowCase from './src/screens/TestShowCase';
+import {NavigationContainer} from '@react-navigation/native';
+import useAuthStore from './src/store/authStore';
+import ToastProvider from './src/utils/toast/ToastProvider';
+import TestScreen from './src/screens/TestScreen';
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 2,
+      staleTime: 1000 * 60 * 5, // 5 minutes
+    },
+  },
+});
 
-const App = () => {
+export default function App() {
+  const initializeAuth = useAuthStore(state => state.initializeAuth);
+
+  useEffect(() => {
+    initializeAuth();
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
-      <MetricsProvider>
-        <ToastProvider>
-          <TestShowCase />
-        </ToastProvider>
-      </MetricsProvider>
+      <ToastProvider>
+        <NavigationContainer>
+          <TestScreen />
+        </NavigationContainer>
+      </ToastProvider>
     </QueryClientProvider>
   );
-};
-
-export default App;
+}
