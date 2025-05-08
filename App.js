@@ -9,7 +9,7 @@ import React from 'react';
 import {QueryClient, QueryClientProvider} from '@tanstack/react-query';
 import {ToastProvider} from './src/components/ToastContainer';
 import {MetricsProvider} from './src/utilities/MetricsContext';
-import MetricsShowcase from './src/screens/New';
+import TestShowCase from './src/screens/TestShowCase';
 
 const queryClient = new QueryClient();
 
@@ -18,7 +18,7 @@ const App = () => {
     <QueryClientProvider client={queryClient}>
       <MetricsProvider>
         <ToastProvider>
-          <MetricsShowcase />
+          <TestShowCase />
         </ToastProvider>
       </MetricsProvider>
     </QueryClientProvider>
